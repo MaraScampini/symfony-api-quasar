@@ -29,6 +29,9 @@ class Note
     #[ORM\ManyToMany(targetEntity: Category::class, mappedBy: 'notes')]
     private Collection $categories;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $date = null;
+
     public function __construct()
     {
         $this->categories = new ArrayCollection();
@@ -98,6 +101,18 @@ class Note
         if ($this->categories->removeElement($category)) {
             $category->removeNote($this);
         }
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTimeInterface $date): static
+    {
+        $this->date = $date;
 
         return $this;
     }

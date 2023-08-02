@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Category;
 use App\Entity\Note;
 use App\Entity\User;
+use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -69,6 +70,7 @@ class AppFixtures extends Fixture
         $note = new Note();
         $note->setTitle('Nota de prueba 1');
         $note->setDescription('Esto es una nota de prueba');
+        $note->setDate(new DateTime('now'));
 
         // Direct setter for the ManyToOne relationship
         $note->setUser($user_mara);
