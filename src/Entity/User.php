@@ -6,6 +6,8 @@ use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User
@@ -16,12 +18,25 @@ class User
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Regex(
+        pattern: '/\d/',
+        match: false,
+        message: 'Your name cannot contain numbers'
+    )]
     private ?string $name = null;
 
     #[ORM\Column]
+    #[Assert\GreaterThan(
+        value: 13,
+        message: 'You must be over 13 to join'
+    )]
     private ?int $age = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Email(
+        message: 'Introduce a valid email address'
+    )]
     private ?string $email = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Note::class, orphanRemoval: true)]
