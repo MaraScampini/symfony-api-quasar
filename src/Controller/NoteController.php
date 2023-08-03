@@ -46,7 +46,6 @@ class NoteController extends AbstractController
 
         foreach ($categories as $cat) {
             $newCategories[] = $em->getRepository(Category::class)->find($cat);
-            
         }
 
         // Create the new note and assign all the properties
@@ -66,6 +65,45 @@ class NoteController extends AbstractController
 
         return $this->json([
             'message' => 'Note created'
+        ]);
+    }
+
+    #[Route('/{id}', name: 'get_note_id', methods: ['GET'])]
+    public function getNoteById($id, EntityManagerInterface $em)
+    {
+        $noteRepo = $em->getRepository(Note::class);
+        $note = $noteRepo->find($id);
+
+        // Extract information to display
+        $title = $note->getTitle();
+        $description = $note->getDescription();
+        $categories = $noteRepo->getAndDisplayCategories($note);
+
+        return $this->json([
+            'title' => $title,
+            'description' => $description,
+            'categories' => $categories
+        ]);
+    }
+
+    #[Route('/user/{id}', name: 'get_notes_by_user', methods: ['GET'])]
+    public function getNotesByUser($id, EntityManagerInterface $em)
+    {
+        $user = $em->getRepository(User::class)->find($id);
+        $noteRepo = $em->getRepository(Note::class);
+
+        $notes = $user->getNotes();
+        foreach ($notes as $n) {
+            $userNotes[] = [
+                'title' => $n->getTitle(),
+                'description' => $n->getDescription(),
+                'categories' => $noteRepo->getAndDisplayCategories($n)
+            ];
+        }
+
+        return $this->json([
+            'message' => 'Notes retrieved for user ' . $user->getName(),
+            'data' => $userNotes
         ]);
     }
 }
