@@ -37,7 +37,7 @@ class UserController extends AbstractController
             return $this->json([
                 'message' => 'User not found'
             ], 404);
-        }        
+        }
 
         return $this->json([
             'message' => 'User retrieved',
@@ -93,7 +93,9 @@ class UserController extends AbstractController
 
         // If the user does not exist, throw error
         if (!$user) {
-            return $this->createNotFoundException('User not found');
+            return $this->json([
+                'message' => 'User not found'
+            ], 404);
         }
 
         // Check which fields are filled to update the user. Email cannot be changed.

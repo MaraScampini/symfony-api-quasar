@@ -19,6 +19,13 @@ class NoteController extends AbstractController
     public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dis)
     {
         $notes = $em->getRepository(Note::class)->findAll();
+
+        if (!$notes) {
+            return $this->json([
+                'message' => 'There are no notes'
+            ], 404);
+        }
+
         $notesInfo = $dis->displayArray($notes);
 
         return $this->json([
@@ -31,6 +38,13 @@ class NoteController extends AbstractController
     public function getPastNotes(EntityManagerInterface $em, DisplayNotes $dis)
     {
         $notes = $em->getRepository(Note::class)->getPastNotes();
+
+        if (!$notes) {
+            return $this->json([
+                'message' => 'There are no notes'
+            ], 404);
+        }
+        
         $notesInfo = $dis->displayArray($notes);
 
         return $this->json([
@@ -43,6 +57,13 @@ class NoteController extends AbstractController
     public function getNoteById($id, EntityManagerInterface $em, DisplayNotes $dis)
     {
         $note = $em->getRepository(Note::class)->find($id);
+
+        if (!$note) {
+            return $this->json([
+                'message' => 'Note not found'
+            ], 404);
+        }
+
         $noteInfo = $dis->displayNote($note);
 
         return $this->json([
@@ -105,6 +126,12 @@ class NoteController extends AbstractController
 
         $body = $req->toArray();
 
+        if (!$note) {
+            return $this->json([
+                'message' => 'Note not found'
+            ], 404);
+        }
+
         if (isset($body['title'])) {
             $note->setTitle($body['title']);
         }
@@ -128,6 +155,12 @@ class NoteController extends AbstractController
     public function deleteNote($id, EntityManagerInterface $em)
     {
         $note = $em->getRepository(Note::class)->find($id);
+
+        if (!$note) {
+            return $this->json([
+                'message' => 'Note not found'
+            ], 404);
+        }
 
         $em->remove($note);
         $em->flush();
