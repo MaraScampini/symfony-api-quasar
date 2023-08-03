@@ -98,4 +98,42 @@ class NoteController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}', name: 'update_note', methods: ['PUT'])]
+    public function editNote($id, EntityManagerInterface $em, Request $req, DisplayNotes $dn)
+    {
+        $note = $em->getRepository(Note::class)->find($id);
+
+        $body = $req->toArray();
+
+        if (isset($body['title'])) {
+            $note->setTitle($body['title']);
+        }
+
+        if (isset($body['description'])) {
+            $note->setTitle($body['description']);
+        }
+
+        $note->setDate(new DateTime('now'));
+
+        $em->persist($note);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Note updated',
+            'note' => $dn->displayNote($note)
+        ]);
+    }
+
+    #[Route('/{id}', name: 'delete_note', methods: ['DELETE'])]
+    public function deleteNote($id, EntityManagerInterface $em)
+    {
+        $note = $em->getRepository(Note::class)->find($id);
+
+        $em->remove($note);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Note deleted'
+        ]);
+    }
 }
