@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Services\DisplayUsers;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,18 +15,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'get_users', methods: ['GET'])]
-    public function getAllUsers(EntityManagerInterface $em)
+    public function getAllUsers(EntityManagerInterface $em, DisplayUsers $du)
     {
         $data = $em->getRepository(User::class)->findAll();
-
-        // Extract data for each user
-        foreach ($data as $user) {
-            $users[] = [
-                'Name' => $user->getName(),
-                'E-mail' => $user->getEmail(),
-                'Age' => $user->getAge()
-            ];
-        }
+        $users = $du->displayArrayUsers($data);
 
         return $this->json([
             'message' => 'Users retrieved',
@@ -34,23 +27,17 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(EntityManagerInterface $em, $id)
+    public function getUserById(EntityManagerInterface $em, DisplayUsers $du, $id)
     {
         $data = $em->getRepository(User::class)->find($id);
+        $user = $du->displayUser($data);
 
         // If no user is found, communicate it
         if (!$data) {
             return $this->json([
                 'message' => 'User not found'
             ], 404);
-        }
-
-        // Extract the data through the setters to display in the response
-        $user = [
-            'Name' => $data->getName(),
-            'E-mail' => $data->getEmail(),
-            'Age' => $data->getAge()
-        ];
+        }        
 
         return $this->json([
             'message' => 'User retrieved',

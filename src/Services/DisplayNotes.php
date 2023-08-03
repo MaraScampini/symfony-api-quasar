@@ -3,8 +3,11 @@
 namespace App\Services;
 
 
-class DisplayNotes {
-  public function displayArray($array){
+class DisplayNotes
+{
+  public function displayArray($array)
+  {
+    $notes = array();
     foreach ($array as $n) {
       $notes[] = $this->displayNote($n);
     }
@@ -12,7 +15,8 @@ class DisplayNotes {
     return $notes;
   }
 
-  public function displayNote($note){
+  public function displayNote($note)
+  {
     $noteInfo = [
       'title' => $note->getTitle(),
       'description' => $note->getDescription(),
@@ -33,5 +37,4 @@ class DisplayNotes {
 
     return $noteCats;
   }
-
 }
