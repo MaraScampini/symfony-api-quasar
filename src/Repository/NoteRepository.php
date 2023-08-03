@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Note;
+use DateInterval;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -22,31 +24,6 @@ class NoteRepository extends ServiceEntityRepository
         parent::__construct($registry, Note::class);
     }
 
-    //    /**
-    //     * @return Note[] Returns an array of Note objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('n')
-    //            ->andWhere('n.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('n.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Note
-    //    {
-    //        return $this->createQueryBuilder('n')
-    //            ->andWhere('n.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
     // Custom method to extract and display categories for notes
     public function getAndDisplayCategories($note)
     {
@@ -57,5 +34,44 @@ class NoteRepository extends ServiceEntityRepository
         }
 
         return $noteCats;
+    }
+
+    // Custom method to display an array of notes
+    public function displayNotes($array){
+        foreach($array as $a){
+            $notes[]= $this->displayNote($a);
+        }
+
+        return $notes;
+    }
+
+    // Custom method to display a note's info
+    public function displayNote($note) {
+        $noteInfo= [
+            'title' => $note->getTitle(),
+            'description' => $note->getDescription(),
+            'date' => $note->getDate(),
+            'categories' => $this->getAndDisplayCategories($note)
+        ];
+
+        return $noteInfo;
+    }
+
+    // Custom method to get past notes
+    public function getPastNotes()
+    {
+        $em = $this->getEntityManager();
+
+
+        $today = new DateTime('now');
+        $past = $today->sub(new DateInterval('P7D'));
+
+        $query = $em->createQuery(
+            'SELECT n
+            FROM App\Entity\Note n
+            WHERE n.date < :date'
+        )->setParameter('date', $past);
+
+        return $query->getResult();
     }
 }
