@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Category;
 use App\Entity\Note;
 use App\Entity\User;
+use App\Services\DisplayNotes;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,16 +16,50 @@ use Symfony\Component\Routing\Annotation\Route;
 class NoteController extends AbstractController
 {
     #[Route('/', name: 'get_all_notes', methods: ['GET'])]
-    public function getAllNotes(EntityManagerInterface $em)
+    public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dis)
     {
-        $noteRepo = $em->getRepository(Note::class);
-        $noteData = $noteRepo->findAll();
-
-        $notes = $noteRepo->displayNotes($noteData);
+        $notes = $em->getRepository(Note::class)->findAll();
+        $notesInfo = $dis->displayArray($notes);
 
         return $this->json([
             'message' => 'Notes retrieved',
-            'data' => $notes
+            'data' => $notesInfo
+        ]);
+    }
+
+    #[Route('/past', name: 'get_past_notes', methods: ['GET'])]
+    public function getPastNotes(EntityManagerInterface $em, DisplayNotes $dis)
+    {
+        $notes = $em->getRepository(Note::class)->getPastNotes();
+        $notesInfo = $dis->displayArray($notes);
+
+        return $this->json([
+            'message' => 'Past notes retrieved',
+            'data' => $notesInfo
+        ]);
+    }
+
+    #[Route('/{id}', name: 'get_note_id', methods: ['GET'])]
+    public function getNoteById($id, EntityManagerInterface $em, DisplayNotes $dis)
+    {
+        $note = $em->getRepository(Note::class)->find($id);
+        $noteInfo = $dis->displayNote($note);
+
+        return $this->json([
+            'message' => 'Note retrieved',
+            'data' => $noteInfo
+        ]);
+    }
+
+    #[Route('/user/{id}', name: 'get_notes_by_user', methods: ['GET'])]
+    public function getNotesByUser($id, EntityManagerInterface $em, DisplayNotes $dis)
+    {
+        $notes = $em->getRepository(User::class)->find($id)->getNotes();
+        $notesInfo = $dis->displayArray($notes);
+
+        return $this->json([
+            'message' => 'Notes retrieved',
+            'data' => $notesInfo
         ]);
     }
 
@@ -63,45 +98,4 @@ class NoteController extends AbstractController
         ]);
     }
 
-    #[Route('/past', name: 'get_past_notes', methods: ['GET'])]
-    public function getPastNotes(EntityManagerInterface $em)
-    {
-        $noteRepo = $em->getRepository(Note::class);
-        $pastNotes=$noteRepo->getPastNotes();
-
-        $notes = $noteRepo->displayNotes($pastNotes);
-
-        return $this->json([
-            'message'=> 'Past notes retrieved',
-            'data' => $notes
-        ]);
-    }
-
-    #[Route('/{id}', name: 'get_note_id', methods: ['GET'])]
-    public function getNoteById($id, EntityManagerInterface $em)
-    {
-        $noteRepo = $em->getRepository(Note::class);
-        $note = $noteRepo->find($id);
-        $noteInfo = $noteRepo->displayNote($note);
-
-        return $this->json([
-            'message' => 'Note retrieved',
-            'data' => $noteInfo
-        ]);
-    }
-
-    #[Route('/user/{id}', name: 'get_notes_by_user', methods: ['GET'])]
-    public function getNotesByUser($id, EntityManagerInterface $em)
-    {
-        $user = $em->getRepository(User::class)->find($id);
-        $noteRepo = $em->getRepository(Note::class);
-
-        $notes = $user->getNotes();
-        $notesInfo = $noteRepo->displayNotes($notes);
-        
-        return $this->json([
-            'message' => 'Notes retrieved for user ' . $user->getName(),
-            'data' => $notesInfo
-        ]);
-    }
 }

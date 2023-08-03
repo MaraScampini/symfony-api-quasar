@@ -24,39 +24,6 @@ class NoteRepository extends ServiceEntityRepository
         parent::__construct($registry, Note::class);
     }
 
-    // Custom method to extract and display categories for notes
-    public function getAndDisplayCategories($note)
-    {
-        $categories = $note->getCategories();
-        $noteCats = array();
-        foreach ($categories as $cats) {
-            $noteCats[] = $cats->getName();
-        }
-
-        return $noteCats;
-    }
-
-    // Custom method to display an array of notes
-    public function displayNotes($array){
-        foreach($array as $a){
-            $notes[]= $this->displayNote($a);
-        }
-
-        return $notes;
-    }
-
-    // Custom method to display a note's info
-    public function displayNote($note) {
-        $noteInfo= [
-            'title' => $note->getTitle(),
-            'description' => $note->getDescription(),
-            'date' => $note->getDate(),
-            'categories' => $this->getAndDisplayCategories($note)
-        ];
-
-        return $noteInfo;
-    }
-
     // Custom method to get past notes
     public function getPastNotes()
     {
