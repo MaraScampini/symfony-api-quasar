@@ -17,19 +17,14 @@ class NoteController extends AbstractController
     #[Route('/', name: 'get_all_notes', methods: ['GET'])]
     public function getAllNotes(EntityManagerInterface $em)
     {
-        $notes = $em->getRepository(Note::class)->findAll();
+        $noteRepo = $em->getRepository(Note::class);
+        $noteData = $noteRepo->findAll();
 
-        foreach ($notes as $n) {
-            $fullNotes[] = [
-                'title' => $n->getTitle(),
-                'description' => $n->getDescription(),
-                'date' => $n->getDate()
-            ];
-        }
+        $notes = $noteRepo->displayNotes($noteData);
 
         return $this->json([
             'message' => 'Notes retrieved',
-            'data' => $fullNotes
+            'data' => $notes
         ]);
     }
 
@@ -68,21 +63,30 @@ class NoteController extends AbstractController
         ]);
     }
 
+    #[Route('/past', name: 'get_past_notes', methods: ['GET'])]
+    public function getPastNotes(EntityManagerInterface $em)
+    {
+        $noteRepo = $em->getRepository(Note::class);
+        $pastNotes=$noteRepo->getPastNotes();
+
+        $notes = $noteRepo->displayNotes($pastNotes);
+
+        return $this->json([
+            'message'=> 'Past notes retrieved',
+            'data' => $notes
+        ]);
+    }
+
     #[Route('/{id}', name: 'get_note_id', methods: ['GET'])]
     public function getNoteById($id, EntityManagerInterface $em)
     {
         $noteRepo = $em->getRepository(Note::class);
         $note = $noteRepo->find($id);
-
-        // Extract information to display
-        $title = $note->getTitle();
-        $description = $note->getDescription();
-        $categories = $noteRepo->getAndDisplayCategories($note);
+        $noteInfo = $noteRepo->displayNote($note);
 
         return $this->json([
-            'title' => $title,
-            'description' => $description,
-            'categories' => $categories
+            'message' => 'Note retrieved',
+            'data' => $noteInfo
         ]);
     }
 
@@ -93,17 +97,11 @@ class NoteController extends AbstractController
         $noteRepo = $em->getRepository(Note::class);
 
         $notes = $user->getNotes();
-        foreach ($notes as $n) {
-            $userNotes[] = [
-                'title' => $n->getTitle(),
-                'description' => $n->getDescription(),
-                'categories' => $noteRepo->getAndDisplayCategories($n)
-            ];
-        }
-
+        $notesInfo = $noteRepo->displayNotes($notes);
+        
         return $this->json([
             'message' => 'Notes retrieved for user ' . $user->getName(),
-            'data' => $userNotes
+            'data' => $notesInfo
         ]);
     }
 }
