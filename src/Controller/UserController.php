@@ -34,9 +34,18 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(User $data)
+    public function getUserById(EntityManagerInterface $em, $id)
     {
-        // The search is already done using the ID parameter in the route, extract data from the user to show
+        $data = $em->getRepository(User::class)->find($id);
+
+        // If no user is found, communicate it
+        if (!$data) {
+            return $this->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Extract the data through the setters to display in the response
         $user = [
             'Name' => $data->getName(),
             'E-mail' => $data->getEmail(),
@@ -68,8 +77,7 @@ class UserController extends AbstractController
 
         // If errors are encountered, show them to the user
         if (count($errors) > 0) {
-            
-            foreach($errors as $error){
+            foreach ($errors as $error) {
                 $errorMessage[] = $error->getMessage();
             }
             return $this->json([
@@ -84,5 +92,58 @@ class UserController extends AbstractController
         return $this->json([
             'message' => 'User created'
         ]);
+    }
+
+    #[Route('/', name: 'update_user', methods: ['PUT'])]
+    public function updateUser(Request $req, EntityManagerInterface $em)
+    {
+        $body = $req->toArray();
+
+        $user_id = $body['id'];
+
+        // Find the user
+        $user = $em->getRepository(User::class)->find($user_id);
+
+        // If the user does not exist, throw error
+        if (!$user) {
+            return $this->createNotFoundException('User not found');
+        }
+
+        // Check which fields are filled to update the user. Email cannot be changed.
+        if (isset($body['name'])) {
+            $name = $body['name'];
+            $user->setName($name);
+        }
+        if (isset($body['age'])) {
+            $age = $body['age'];
+            $user->setAge($age);
+        }
+
+        // Save to the DB
+        $em->persist($user);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'User updated'
+        ], 200);
+    }
+
+    #[Route('/{id}', name: 'delete_user', methods: ['DELETE'])]
+    public function deleteUser(EntityManagerInterface $em, $id)
+    {
+        $user = $em->getRepository(User::class)->find($id);
+
+        if (!$user) {
+            return $this->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $em->remove($user);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'User deleted'
+        ], 200);
     }
 }
