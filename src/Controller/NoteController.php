@@ -9,6 +9,7 @@ use App\Services\DisplayNotes;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -16,16 +17,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class NoteController extends AbstractController
 {
     #[Route('/', name: 'get_all_notes', methods: ['GET'])]
-    public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dn)
+    public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dn):JsonResponse
     {
         $notes = $em->getRepository(Note::class)->findAll();
 
+        // Show error if the notes are not found
         if (!$notes) {
             return $this->json([
                 'message' => 'There are no notes'
             ], 404);
         }
 
+        // Custom method from services using getters
         $notesInfo = $dn->displayArray($notes);
 
         return $this->json([
@@ -35,8 +38,9 @@ class NoteController extends AbstractController
     }
 
     #[Route('/past', name: 'get_past_notes', methods: ['GET'])]
-    public function getPastNotes(EntityManagerInterface $em, DisplayNotes $dn)
+    public function getPastNotes(EntityManagerInterface $em, DisplayNotes $dn): JsonResponse
     {
+        // Custom method in repository to fetch past notes
         $notes = $em->getRepository(Note::class)->getPastNotes();
 
         if (!$notes) {
@@ -54,7 +58,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/{id}', name: 'get_note_id', methods: ['GET'])]
-    public function getNoteById($id, EntityManagerInterface $em, DisplayNotes $dn)
+    public function getNoteById($id, EntityManagerInterface $em, DisplayNotes $dn): JsonResponse
     {
         $note = $em->getRepository(Note::class)->find($id);
 
@@ -64,6 +68,7 @@ class NoteController extends AbstractController
             ], 404);
         }
 
+        // Custom method from services using getters
         $noteInfo = $dn->displayNote($note);
 
         return $this->json([
@@ -73,7 +78,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/user/{id}', name: 'get_notes_by_user', methods: ['GET'])]
-    public function getNotesByUser($id, EntityManagerInterface $em, DisplayNotes $dn)
+    public function getNotesByUser($id, EntityManagerInterface $em, DisplayNotes $dn): JsonResponse
     {
         $notes = $em->getRepository(User::class)->find($id)->getNotes();
 
@@ -82,7 +87,7 @@ class NoteController extends AbstractController
                 'message' => 'There are no notes'
             ], 404);
         }
-        
+
         $notesInfo = $dn->displayArray($notes);
 
         return $this->json([
@@ -92,7 +97,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/cat/{id}', name: 'get_notes_by_category')]
-    public function getNotesByCategory($id, EntityManagerInterface $em, DisplayNotes $dn)
+    public function getNotesByCategory($id, EntityManagerInterface $em, DisplayNotes $dn): JsonResponse
     {
         $notes = $em->getRepository(Category::class)->find($id)->getNotes();
         $notesInfo = $dn->displayArray($notes);
@@ -104,7 +109,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/', name: 'create_note', methods: ['POST'])]
-    public function createNote(EntityManagerInterface $em, Request $req)
+    public function createNote(EntityManagerInterface $em, Request $req): JsonResponse
     {
         $body = $req->toArray();
 
@@ -139,7 +144,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/{id}', name: 'update_note', methods: ['PUT'])]
-    public function editNote($id, EntityManagerInterface $em, Request $req, DisplayNotes $dn)
+    public function editNote($id, EntityManagerInterface $em, Request $req, DisplayNotes $dn): JsonResponse
     {
         $note = $em->getRepository(Note::class)->find($id);
 
@@ -151,6 +156,7 @@ class NoteController extends AbstractController
             ], 404);
         }
 
+        // Check if the body is sending the fields to update the entity
         if (isset($body['title'])) {
             $note->setTitle($body['title']);
         }
@@ -159,6 +165,7 @@ class NoteController extends AbstractController
             $note->setTitle($body['description']);
         }
 
+        // Set new date to the note
         $note->setDate(new DateTime('now'));
 
         $em->persist($note);
@@ -171,7 +178,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete_note', methods: ['DELETE'])]
-    public function deleteNote($id, EntityManagerInterface $em)
+    public function deleteNote($id, EntityManagerInterface $em): JsonResponse
     {
         $note = $em->getRepository(Note::class)->find($id);
 

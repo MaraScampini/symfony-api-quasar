@@ -15,9 +15,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'get_users', methods: ['GET'])]
-    public function getAllUsers(EntityManagerInterface $em, DisplayUsers $du)
+    public function getAllUsers(EntityManagerInterface $em, DisplayUsers $du): JsonResponse
     {
         $data = $em->getRepository(User::class)->findAll();
+
+        // Custom method from services using getters
         $users = $du->displayArrayUsers($data);
 
         return $this->json([
@@ -27,7 +29,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'get_user_by_id', methods: ['GET'])]
-    public function getUserById(EntityManagerInterface $em, DisplayUsers $du, $id)
+    public function getUserById(EntityManagerInterface $em, DisplayUsers $du, $id): JsonResponse
     {
         $data = $em->getRepository(User::class)->find($id);
         $user = $du->displayUser($data);
@@ -46,7 +48,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/', name: 'create_user', methods: ['POST'])]
-    public function createUser(Request $req, EntityManagerInterface $em, ValidatorInterface $validator)
+    public function createUser(Request $req, EntityManagerInterface $em, ValidatorInterface $validator): JsonResponse
     {
         // Parse the body to array to access the data
         $body = $req->toArray();
@@ -82,7 +84,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/', name: 'update_user', methods: ['PUT'])]
-    public function updateUser(Request $req, EntityManagerInterface $em)
+    public function updateUser(Request $req, EntityManagerInterface $em): JsonResponse
     {
         $body = $req->toArray();
 
@@ -118,7 +120,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete_user', methods: ['DELETE'])]
-    public function deleteUser(EntityManagerInterface $em, $id)
+    public function deleteUser(EntityManagerInterface $em, $id): JsonResponse
     {
         $user = $em->getRepository(User::class)->find($id);
 
