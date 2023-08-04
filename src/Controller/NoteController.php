@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class NoteController extends AbstractController
 {
     #[Route('/', name: 'get_all_notes', methods: ['GET'])]
-    public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dn):JsonResponse
+    public function getAllNotes(EntityManagerInterface $em, DisplayNotes $dn): JsonResponse
     {
         $notes = $em->getRepository(Note::class)->findAll();
 
@@ -174,6 +174,52 @@ class NoteController extends AbstractController
         return $this->json([
             'message' => 'Note updated',
             'note' => $dn->displayNote($note)
+        ]);
+    }
+
+    #[Route('/add_cat/{id}', name: 'add_category_to_note', methods: ['PATCH'])]
+    public function addCategoryToNote(EntityManagerInterface $em, Request $req, DisplayNotes $dn, $id): JsonResponse
+    {
+        $note = $em->getRepository(Note::class)->find($id);
+        $body = $req->toArray();
+        $category = $em->getRepository(Category::class)->find($body['category']);
+
+        if (!$note) {
+            return $this->json([
+                'message' => 'Note not found'
+            ], 404);
+        }
+
+        $note->addCategory($category);
+        $em->persist($note);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Category added',
+            'data' => $dn->displayNote($note)
+        ]);
+    }
+
+    #[Route('/del_cat/{id}', name: 'delete_category_from_note', methods:['PATCH'])]
+    public function deleteCategoryFromNote(EntityManagerInterface $em, Request $req, DisplayNotes $dn, $id): JsonResponse
+    {
+        $note = $em->getRepository(Note::class)->find($id);
+        $body = $req->toArray();
+        $category = $em->getRepository(Category::class)->find($body['category']);
+
+        if (!$note) {
+            return $this->json([
+                'message' => 'Note not found'
+            ], 404);
+        }
+
+        $note->removeCategory($category);
+        $em->persist($note);
+        $em->flush();
+
+        return $this->json([
+            'message' => 'Category removed',
+            'data' => $dn->displayNote($note)
         ]);
     }
 
