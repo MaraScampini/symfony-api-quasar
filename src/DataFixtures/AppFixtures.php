@@ -64,8 +64,10 @@ class AppFixtures extends Fixture
     {
         // Importing the references from the other tables
         $user_mara = $this->getReference('mara');
+        $user_hector = $this->getReference('hector');
         $house_cat = $this->getReference('house');
         $school_cat = $this->getReference('school');
+        $work_cat = $this->getReference('work');
 
         $note = new Note();
         $note->setTitle('Nota de prueba 1');
@@ -79,6 +81,16 @@ class AppFixtures extends Fixture
         $note->addCategory($school_cat);
 
         $manager->persist($note);
+
+        $note = new Note();
+        $note->setTitle('Nota de prueba antigua');
+        $note->setDescription('Esto es una nota de prueba');
+        $note->setDate(new DateTime('2022-12-12'));
+        $note->setUser($user_hector);
+        $note->addCategory($house_cat);
+        $note->addCategory($work_cat);
+        $manager->persist($note);
+
 
         $manager->flush();
     }
